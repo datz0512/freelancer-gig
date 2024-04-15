@@ -105,4 +105,101 @@ const gigsSearch = async (
   };
 };
 
-export { gigsSearchBySellerId, gigsSearch };
+const gigsSearchByCategory = async (searchQuery: string): Promise<ISearchResult> => {
+  const result: SearchResponse = await elasticSearchClient.search({
+    index: 'gigs',
+    size: 10,
+    query: {
+      bool: {
+        must: [
+          {
+            query_string: {
+              fields: ['categories'],
+              query: `*${searchQuery}*`
+            }
+          },
+          {
+            term: {
+              active: true
+            }
+          }
+        ]
+      }
+    }
+  });
+  const total: IHitsTotal = result.hits.total as IHitsTotal;
+  return {
+    total: total.value,
+    hits: result.hits.hits
+  };
+};
+
+const getMoreGigsLikeThis = async (gigId: string): Promise<ISearchResult> => {
+  const result = await elasticSearchClient.search({
+    index: 'gigs',
+    size: 5,
+    query: {
+      more_like_this: {
+        fields: [
+          'username',
+          'title',
+          'description',
+          'basicDescription',
+          'basicTitle',
+          'categories',
+          'subCategories',
+          'tags'
+        ],
+        like: [
+          {
+            _index: 'gigs',
+            _id: gigId
+          }
+        ]
+      }
+    }
+  });
+  const total: IHitsTotal = result.hits.total as IHitsTotal;
+  return {
+    total: total.value,
+    hits: result.hits.hits
+  };
+};
+
+const getTopRatedGigsByCategory = async (searchQuery: string): Promise<ISearchResult> => {
+  const result = await elasticSearchClient.search({
+    index: 'gigs',
+    size: 10,
+    query: {
+      bool: {
+        filter: {
+          script: {
+            script: {
+              source:
+                "doc['ratingSum'].value != 0 && (doc['ratingSum'].value / doc['ratingsCount'].value == params['threshold'])",
+              lang: 'painless',
+              params: {
+                threshold: 5
+              }
+            }
+          }
+        },
+        must: [
+          {
+            query_string: {
+              fields: ['categories'],
+              query: `*${searchQuery}*`
+            }
+          }
+        ]
+      }
+    }
+  });
+  const total: IHitsTotal = result.hits.total as IHitsTotal;
+  return {
+    total: total.value,
+    hits: result.hits.hits
+  };
+};
+
+export { gigsSearchBySellerId, gigsSearch, gigsSearchByCategory, getMoreGigsLikeThis, getTopRatedGigsByCategory };

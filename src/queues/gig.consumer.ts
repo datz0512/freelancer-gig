@@ -3,7 +3,7 @@ import { createConnection } from '@gig/queues/connection';
 import { Logger } from 'winston';
 import { winstonLogger } from '@datz0512/freelancer-shared';
 import { config } from '@gig/config';
-import { updateGigReview } from '@gig/services/gig.service';
+import { seedData, updateGigReview } from '@gig/services/gig.service';
 
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'gigServiceConsumer', 'debug');
 
@@ -46,7 +46,8 @@ const consumeSeedDirectMessages = async (channel: Channel): Promise<void> => {
     });
     await channel.bindQueue(freelancerQueue.queue, exchangeName, routingKey);
     channel.consume(freelancerQueue.queue, async (msg: ConsumeMessage | null) => {
-      // Use seed data function
+      const { sellers, count } = JSON.parse(msg!.content.toString());
+      await seedData(sellers, count);
       channel.ack(msg!);
     });
   } catch (error) {
