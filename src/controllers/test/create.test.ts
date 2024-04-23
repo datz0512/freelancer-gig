@@ -1,6 +1,6 @@
 import { gigCreateSchema } from '@gig/schemes/gig';
-import { authUserPayload, gigMockRequest, gigMockResponse, sellerGig } from './mocks/gig.mock';
-import { gigCreate } from '../create';
+import { authUserPayload, gigMockRequest, gigMockResponse, sellerGig } from '@gig/controllers/test/mocks/gig.mock';
+import { gigCreate } from '@gig/controllers/create';
 import { BadRequestError } from '@datz0512/freelancer-shared';
 import { Request, Response } from 'express';
 
