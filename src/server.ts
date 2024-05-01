@@ -69,7 +69,7 @@ const startQueues = async (): Promise<void> => {
 
 const startElasticSearch = (): void => {
   checkConnection();
-  createIndex('gig');
+  createIndex('gigs');
 };
 
 const gigErrorHandler = (app: Application) => {
